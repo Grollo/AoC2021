@@ -1,36 +1,92 @@
+function containsAllOf(s1, s2) {
+	for (let i = 0; i < s2.length; i++) {
+		if (!s1.includes(s2[i])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function matches(s1, s2) {
+	return s1.length == s2.length && containsAllOf(s1, s2);
+}
+
 function task(lines) {
 	let ones = 0, fours = 0, sevens = 0, eights = 0;
+	let finalSum = 0;
 	for (let i = 0; i < lines.length; i++) {
 		let lineParts = lines[i].split(' | ');
 		let inputs = lineParts[0].split(' ');
 		let outputs = lineParts[1].split(' ');
+		let keys = new Array(10);
+		keys[8] = 'abcdefg';
+		let zeroSixNine = new Array();
+		let twoThreeFive = new Array();
+		for (let input = 0; input < 10; input++) {
+			if (inputs[input].length == 2) {
+				keys[1] = inputs[input];
+			} else if (inputs[input].length == 4) {
+				keys[4] = inputs[input];
+			} else if (inputs[input].length == 3) {
+				keys[7] = inputs[input];
+			} else if (inputs[input].length == 6) {
+				zeroSixNine.push(inputs[input]);
+			} else if (inputs[input].length == 5) {
+				twoThreeFive.push(inputs[input]);
+			}
+		}
+		for (let j = 0; j < 3; j++) {
+			if (containsAllOf(zeroSixNine[j], keys[4])) {
+				keys[9] = zeroSixNine.splice(j, 1)[0];
+				break;
+			}
+		}
+		if (containsAllOf(zeroSixNine[0], keys[1])) {
+			keys[0] = zeroSixNine[0];
+			keys[6] = zeroSixNine[1];
+		} else {
+			keys[0] = zeroSixNine[1];
+			keys[6] = zeroSixNine[0];
+		}
+		for (let j = 0; j < 3; j++) {
+			if (containsAllOf(twoThreeFive[j], keys[1])) {
+				keys[3] = twoThreeFive.splice(j, 1)[0];
+				break;
+			}
+		}
+		let fourMinusOne = '';
+		for (let j = 0; j < 4; j++) {
+			if (!keys[1].includes(keys[4][j])) {
+				fourMinusOne += keys[4][j];
+			}
+		}
+		if (containsAllOf(twoThreeFive[0], fourMinusOne)) {
+			keys[5] = twoThreeFive[0];
+			keys[2] = twoThreeFive[1];
+		} else {
+			keys[5] = twoThreeFive[1];
+			keys[2] = twoThreeFive[0];
+		}
+		
 		for (let j = 0; j < outputs.length; j++) {
+			for (let k = 0; k < 10; k++) {
+				if (matches(outputs[j], keys[k])) {
+					finalSum += k * Math.pow(10, outputs.length - j - 1);
+				}
+			}
 			if (outputs[j].length == 2) {
 				ones++;
 			} else if (outputs[j].length == 4) {
 				fours++;
 			} else if (outputs[j].length == 3) {
-				fours++;
+				sevens++;
 			} else if (outputs[j].length == 7) {
 				eights++;
 			}
 		}
-		
 	}
 	let simpleNumbers = ones + fours + sevens + eights;
-	/*
-	I don't have the patience to program this, so I'll just describe the solution.
-	Functions every() and includes() would be used. 
-	First, a 1, 4 7 or 8 can be distinguished as above.
-	Second, The group with lengh of six is 0, 6 and 9.
-	9 can be distinguished as the only one to have all elements from 4.
-	0 is then the one of the remaining two which has all elements of 1 (or 7). 
-	Third, 2, 3, and 5 have length five so they are grouped together.
-	3 can be separated out as it is the only one to contain both elements of 1.
-	5 can the be separated out as the only one to contain the elements of 4 that doesn't appear in 1.
-	Now just motiply each number by its position (1000, 100, 10 or 1) and add it all up. Just saved an hour of my life. 
-	*/
-	return new Array(simpleNumbers, 0);
+	return new Array(simpleNumbers, finalSum);
 }
 
 function runTask() {
